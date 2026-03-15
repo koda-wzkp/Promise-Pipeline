@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sky-lightest: #E0F6FF;
+  --sky-light: #B3E5FC;
+  --sky-medium: #87CEEB;
+  --sky-accent: #4A90D9;
+  --sky-dark: #1a1a2e;
+  --status-verified: #1a5f4a;
+  --status-declared: #2563eb;
+  --status-degraded: #b45309;
+  --status-violated: #b91c1c;
+  --status-unverifiable: #7c3aed;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: #1f2937;
+  background: #faf9f6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+}
+
+code, pre, .font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Cloud animation for landing page */
+@keyframes cloud-drift {
+  0% { transform: translateX(-10%); }
+  50% { transform: translateX(10%); }
+  100% { transform: translateX(-10%); }
+}
+
+.cloud-drift {
+  animation: cloud-drift 60s ease-in-out infinite;
+}
+
+.cloud-drift-slow {
+  animation: cloud-drift 90s ease-in-out infinite reverse;
+}
+
+/* Cascade animation */
+@keyframes cascade-pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.cascade-pulse {
+  animation: cascade-pulse 1.5s ease-in-out infinite;
+}
+
+/* Focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
