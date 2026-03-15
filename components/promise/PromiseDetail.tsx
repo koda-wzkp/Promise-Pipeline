@@ -120,6 +120,31 @@ export function PromiseDetail({
         </div>
       )}
 
+      {/* Verification Commitment */}
+      {promise.verification.commitment && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-xs font-medium text-gray-500">Verification Commitment</span>
+          </div>
+          <div className="space-y-0.5" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+            <p className="text-xs text-gray-500">
+              Verified: {promise.verification.commitment.timestamp}
+            </p>
+            <p className="text-xs text-gray-500">
+              Source: {promise.verification.commitment.sourceDigest}
+            </p>
+            <p className="text-xs text-gray-500">
+              Hash: {promise.verification.commitment.hash.length > 20
+                ? `${promise.verification.commitment.hash.slice(0, 8)}...${promise.verification.commitment.hash.slice(-4)}`
+                : promise.verification.commitment.hash} (SHA-256)
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Note */}
       {promise.note && (
         <div className="mb-4">

@@ -44,4 +44,12 @@ export interface CapacityResult {
   atRiskPromises: string[];
   healthImpact: number;
   recommendation: string;
+
+  // Utilization impact from queueing theory
+  utilizationImpact?: {
+    before: number;       // team utilization before the new promise
+    after: number;        // projected utilization after
+    memberBefore: number; // assignee utilization before
+    memberAfter: number;  // assignee utilization after
+  };
 }

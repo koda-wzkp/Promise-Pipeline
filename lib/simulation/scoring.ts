@@ -1,4 +1,5 @@
 import { Promise, PromiseStatus } from "../types/promise";
+import { calculateBetweenness } from "./graph";
 
 const STATUS_WEIGHTS: Record<PromiseStatus, number> = {
   verified: 100,
@@ -6,6 +7,14 @@ const STATUS_WEIGHTS: Record<PromiseStatus, number> = {
   degraded: 30,
   violated: 0,
   unverifiable: 20,
+};
+
+const CERTAINTY_WEIGHTS: Record<PromiseStatus, number> = {
+  verified: 1.0,
+  violated: 0.9,
+  degraded: 0.6,
+  declared: 0.3,
+  unverifiable: 0.0,
 };
 
 /**
@@ -127,4 +136,121 @@ export function generateGradeExplanation(
   }
 
   return `Grade: ${grade}. ${parts.join(". ")}.`;
+}
+
+/**
+ * Calculate network entropy — how much uncertainty exists in the network.
+ *
+ * Returns 0-100 where:
+ *   0 = complete certainty (all promises verified or confirmed violated)
+ *   100 = complete uncertainty (all promises unverifiable)
+ *
+ * This is distinct from health: a network can be healthy but uncertain
+ * (many declared promises not yet tested) or unhealthy but certain
+ * (many confirmed violations).
+ */
+export function calculateNetworkEntropy(promises: Promise[]): {
+  overall: number;
+  byDomain: Record<string, number>;
+  byStatus: Record<PromiseStatus, number>;
+  verificationCoverage: number;
+} {
+  if (promises.length === 0)
+    return {
+      overall: 0,
+      byDomain: {},
+      byStatus: {
+        verified: 0,
+        declared: 0,
+        degraded: 0,
+        violated: 0,
+        unverifiable: 0,
+      },
+      verificationCoverage: 0,
+    };
+
+  // Overall uncertainty
+  const uncertainties = promises.map(
+    (p) => 1.0 - CERTAINTY_WEIGHTS[p.status]
+  );
+  const overall =
+    (uncertainties.reduce((a, b) => a + b, 0) / promises.length) * 100;
+
+  // By domain
+  const byDomain: Record<string, number> = {};
+  const domainGroups: Record<string, Promise[]> = {};
+  for (const p of promises) {
+    if (!domainGroups[p.domain]) domainGroups[p.domain] = [];
+    domainGroups[p.domain].push(p);
+  }
+  for (const [domain, group] of Object.entries(domainGroups)) {
+    const domUncertainties = group.map(
+      (p) => 1.0 - CERTAINTY_WEIGHTS[p.status]
+    );
+    byDomain[domain] =
+      (domUncertainties.reduce((a, b) => a + b, 0) / group.length) * 100;
+  }
+
+  // Status counts
+  const byStatus: Record<PromiseStatus, number> = {
+    verified: 0,
+    declared: 0,
+    degraded: 0,
+    violated: 0,
+    unverifiable: 0,
+  };
+  for (const p of promises) byStatus[p.status]++;
+
+  // Verification coverage
+  const withVerification = promises.filter(
+    (p) => p.verification.method !== "none"
+  ).length;
+  const verificationCoverage = (withVerification / promises.length) * 100;
+
+  return { overall, byDomain, byStatus, verificationCoverage };
+}
+
+/**
+ * Identify high-leverage promises using both dependent count
+ * and betweenness centrality.
+ *
+ * Returns promises sorted by a combined leverage score:
+ *   leverage = 0.5 * normalizedDependentCount + 0.5 * betweennessCentrality
+ *
+ * This catches both "hub" nodes (many dependents) and "bridge" nodes
+ * (few dependents but critical structural position).
+ */
+export function identifyHighLeverageNodes(
+  promises: Promise[]
+): {
+  promiseId: string;
+  dependentCount: number;
+  betweenness: number;
+  leverage: number;
+}[] {
+  const betweenness = calculateBetweenness(promises);
+
+  // Count dependents (reverse dependency)
+  const dependentCounts: Record<string, number> = {};
+  for (const p of promises) dependentCounts[p.id] = 0;
+  for (const p of promises) {
+    for (const dep of p.depends_on) {
+      if (dependentCounts[dep] !== undefined) {
+        dependentCounts[dep]++;
+      }
+    }
+  }
+
+  const maxDeps = Math.max(...Object.values(dependentCounts), 1);
+
+  return promises
+    .map((p) => ({
+      promiseId: p.id,
+      dependentCount: dependentCounts[p.id] || 0,
+      betweenness: betweenness[p.id] || 0,
+      leverage:
+        0.5 * ((dependentCounts[p.id] || 0) / maxDeps) +
+        0.5 * (betweenness[p.id] || 0),
+    }))
+    .sort((a, b) => b.leverage - a.leverage);
 }

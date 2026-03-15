@@ -225,3 +225,87 @@ export function countDependents(promises: Promise[]): Map<string, number> {
   }
   return counts;
 }
+
+/**
+ * Calculate betweenness centrality for all promise nodes.
+ *
+ * Betweenness centrality of node v = fraction of all shortest paths
+ * between pairs of other nodes that pass through v.
+ *
+ * High betweenness = the promise is a critical bridge in the network.
+ * Its failure disconnects or weakens connections between clusters.
+ *
+ * Uses Brandes' algorithm (O(VE) — efficient for small graphs).
+ */
+export function calculateBetweenness(
+  promises: Promise[]
+): Record<string, number> {
+  const n = promises.length;
+  const ids = promises.map((p) => p.id);
+  const centrality: Record<string, number> = {};
+  for (const id of ids) centrality[id] = 0;
+
+  // Build adjacency list (both directions — depends_on is directional
+  // but betweenness considers paths in both directions)
+  const adj: Record<string, string[]> = {};
+  for (const p of promises) {
+    if (!adj[p.id]) adj[p.id] = [];
+    for (const dep of p.depends_on) {
+      if (!adj[dep]) adj[dep] = [];
+      adj[p.id].push(dep);
+      adj[dep].push(p.id);
+    }
+  }
+
+  // Brandes' algorithm
+  for (const s of ids) {
+    const stack: string[] = [];
+    const pred: Record<string, string[]> = {};
+    const sigma: Record<string, number> = {};
+    const dist: Record<string, number> = {};
+    const delta: Record<string, number> = {};
+
+    for (const id of ids) {
+      pred[id] = [];
+      sigma[id] = 0;
+      dist[id] = -1;
+      delta[id] = 0;
+    }
+    sigma[s] = 1;
+    dist[s] = 0;
+
+    const queue: string[] = [s];
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      stack.push(v);
+      for (const w of adj[v] || []) {
+        if (dist[w] < 0) {
+          queue.push(w);
+          dist[w] = dist[v] + 1;
+        }
+        if (dist[w] === dist[v] + 1) {
+          sigma[w] += sigma[v];
+          pred[w].push(v);
+        }
+      }
+    }
+
+    while (stack.length > 0) {
+      const w = stack.pop()!;
+      for (const v of pred[w]) {
+        delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]);
+      }
+      if (w !== s) {
+        centrality[w] += delta[w];
+      }
+    }
+  }
+
+  // Normalize to 0-1
+  const maxVal = Math.max(...Object.values(centrality), 1);
+  for (const id of ids) {
+    centrality[id] = centrality[id] / maxVal;
+  }
+
+  return centrality;
+}

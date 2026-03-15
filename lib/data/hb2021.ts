@@ -39,7 +39,14 @@ export const promises: Promise[] = [
     progress: 45,
     required: 80,
     note: "PGE has made progress but is behind the 2030 interim target. Current trajectory suggests 60-65% reduction by 2030.",
-    verification: { method: "audit", source: "Oregon DEQ", metric: "GHG emissions (MT CO2e)", frequency: "annual" },
+    verification: {
+      method: "audit", source: "Oregon DEQ", metric: "GHG emissions (MT CO2e)", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon DEQ Annual Emissions Audit, PGE 2024",
+      },
+    },
     // P001 depends on: PGE having an approved plan (P002), DEQ verification (P006)
     depends_on: ["P002", "P006"],
     polarity: "give",
@@ -57,7 +64,14 @@ export const promises: Promise[] = [
     progress: 100,
     required: 100,
     note: "PGE filed its Clean Energy Plan (CEP) in March 2022, approved by PUC in November 2022.",
-    verification: { method: "filing", source: "Oregon PUC", metric: "Plan filing status", frequency: "annual" },
+    verification: {
+      method: "filing", source: "Oregon PUC", metric: "Plan filing status", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon PUC, PGE Clean Energy Plan Filing, Docket LC 80",
+      },
+    },
     // P002 depends on: tribal consultation informing the plan (P016)
     depends_on: ["P016"],
     polarity: "give",
@@ -93,7 +107,14 @@ export const promises: Promise[] = [
     progress: 25,
     required: 80,
     note: "PacifiCorp's multi-state operations and heavy coal dependence make the 2030 target effectively unreachable. Current trajectory: 35-40% by 2030.",
-    verification: { method: "audit", source: "Oregon DEQ", metric: "GHG emissions (MT CO2e)", frequency: "annual" },
+    verification: {
+      method: "audit", source: "Oregon DEQ", metric: "GHG emissions (MT CO2e)", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon DEQ Annual Emissions Audit, PacifiCorp 2024",
+      },
+    },
     // P004 depends on: PacifiCorp plan (P003), DEQ verification (P006)
     depends_on: ["P003", "P006"],
     polarity: "give",
@@ -112,7 +133,14 @@ export const promises: Promise[] = [
     progress: 100,
     required: 100,
     note: "PUC established rulemaking (AR 631) and adopted targets aligned with statutory requirements.",
-    verification: { method: "filing", source: "Oregon PUC", metric: "Rulemaking completion", frequency: "annual" },
+    verification: {
+      method: "filing", source: "Oregon PUC", metric: "Rulemaking completion", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon PUC Rulemaking AR 631, Emissions Reduction Targets",
+      },
+    },
     depends_on: [],
     polarity: "give",
     origin: "imposed",
@@ -129,7 +157,14 @@ export const promises: Promise[] = [
     progress: 100,
     required: 100,
     note: "DEQ has an established emissions tracking and verification program. Annual compliance reports published.",
-    verification: { method: "audit", source: "Oregon DEQ", metric: "Verification report completion", frequency: "annual" },
+    verification: {
+      method: "audit", source: "Oregon DEQ", metric: "Verification report completion", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon DEQ Emissions Verification Program, Annual Compliance Report 2024",
+      },
+    },
     depends_on: [],
     polarity: "give",
     origin: "imposed",
@@ -253,7 +288,14 @@ export const promises: Promise[] = [
     progress: 100,
     required: 100,
     note: "PUC conducts regular rate impact analyses as part of IRP and CEP review processes.",
-    verification: { method: "filing", source: "Oregon PUC", metric: "Rate impact assessment completion", frequency: "annual" },
+    verification: {
+      method: "filing", source: "Oregon PUC", metric: "Rate impact assessment completion", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon PUC Rate Impact Assessment, IRP/CEP Review 2024",
+      },
+    },
     depends_on: [],
     polarity: "give",
     origin: "imposed",
@@ -270,7 +312,14 @@ export const promises: Promise[] = [
     progress: undefined,
     required: undefined,
     note: "Rate increases are approaching but have not yet exceeded the cap. PGE's 2024 rate case attributed ~4.5% to clean energy costs. Future years may trigger the cap, which could pause transition investments.",
-    verification: { method: "filing", source: "Oregon PUC", metric: "% rate increase attributable to clean energy", frequency: "annual" },
+    verification: {
+      method: "filing", source: "Oregon PUC", metric: "% rate increase attributable to clean energy", frequency: "annual",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon PUC Order No. 24-002, Docket UM 2273",
+      },
+    },
     depends_on: ["P013"],
     polarity: "give",
     origin: "imposed",
@@ -287,7 +336,14 @@ export const promises: Promise[] = [
     progress: 100,
     required: 100,
     note: "DOE published its first biennial report in September 2023. Comprehensive data on emissions trajectories and cost impacts.",
-    verification: { method: "filing", source: "Oregon DOE", metric: "Report publication", frequency: "biennial" },
+    verification: {
+      method: "filing", source: "Oregon DOE", metric: "Report publication", frequency: "biennial",
+      commitment: {
+        hash: "placeholder — will be computed from actual source documents",
+        timestamp: "2026-03-15T00:00:00Z",
+        sourceDigest: "Oregon DOE Biennial Clean Energy Report, September 2023",
+      },
+    },
     depends_on: ["P006"],
     polarity: "give",
     origin: "imposed",

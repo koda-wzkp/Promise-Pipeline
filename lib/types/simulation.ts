@@ -33,6 +33,13 @@ export interface NetworkHealthScore {
   mtkp?: number;
   mtkpByDomain?: Record<string, number>;
   mtkpByAgent?: Record<string, number>;
+
+  // Entropy / uncertainty metrics
+  entropy?: {
+    overall: number;              // 0-100 uncertainty score
+    byDomain: Record<string, number>;
+    verificationCoverage: number; // % with verification method !== "none"
+  };
 }
 
 // ─── GRAPH STRUCTURES ───

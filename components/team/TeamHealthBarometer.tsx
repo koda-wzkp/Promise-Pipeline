@@ -4,6 +4,7 @@ import { TeamPromise, TeamMember } from "@/lib/types/team";
 import { NetworkHealthBar } from "@/components/simulation/NetworkHealthBar";
 import { calculateNetworkHealth } from "@/lib/simulation/cascade";
 import { statusBreakdown, domainHealthScores } from "@/lib/simulation/scoring";
+import { calculateUtilization } from "@/lib/simulation/capacity";
 
 interface TeamHealthBarometerProps {
   promises: TeamPromise[];
@@ -41,12 +42,31 @@ export function TeamHealthBarometer({
         }, 0) / keptWithDates.length
       : 0;
 
+  const utilization = calculateUtilization(promises, members);
+  const utilizationPct = Math.round(utilization.teamUtilization * 100);
+
   const healthColor =
     keptRate >= 0.8
       ? "text-green-700"
       : keptRate >= 0.6
       ? "text-amber-700"
       : "text-red-700";
+
+  const utilizationColor =
+    utilizationPct < 70
+      ? "#1a5f4a"
+      : utilizationPct <= 85
+      ? "#78350f"
+      : "#991b1b";
+
+  const utilizationLabel =
+    utilizationPct < 70
+      ? "Healthy capacity"
+      : utilizationPct <= 85
+      ? "Approaching capacity"
+      : utilizationPct <= 100
+      ? "At capacity"
+      : "Overloaded";
 
   return (
     <div className="space-y-6">
@@ -84,6 +104,40 @@ export function TeamHealthBarometer({
         </div>
 
         <NetworkHealthBar score={health.overall} label="Overall Health" />
+      </div>
+
+      {/* Utilization */}
+      <div className="bg-white rounded-xl border p-6">
+        <h3 className="font-serif font-semibold text-gray-900 mb-4">
+          Team Utilization
+        </h3>
+        <div className="flex items-center gap-4 mb-3">
+          <p className="text-3xl font-bold" style={{ color: utilizationColor }}>
+            {utilizationPct}%
+          </p>
+          <p className="text-sm" style={{ color: utilizationColor }}>
+            {utilizationLabel}
+          </p>
+        </div>
+        <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
+          <div
+            className={`h-full rounded-full transition-all${utilizationPct > 100 ? " animate-pulse" : ""}`}
+            style={{
+              width: `${Math.min(utilizationPct, 100)}%`,
+              backgroundColor: utilizationColor,
+            }}
+          />
+        </div>
+        <div className="flex justify-between text-xs text-gray-500">
+          <span>Arrival: {utilization.arrivalRate.toFixed(1)} promises/week</span>
+          <span>Completion: {utilization.completionRate.toFixed(1)} promises/week</span>
+          <span>{utilization.timeToOverload === null ? "Stable" : utilization.timeToOverload === 0 ? "Overloaded" : `~${utilization.timeToOverload}wk to overload`}</span>
+        </div>
+        {utilization.timeToOverload !== null && utilization.timeToOverload > 0 && (
+          <p className="text-xs text-red-700 mt-2">
+            At current rates, this team will be unable to keep up in ~{utilization.timeToOverload} weeks.
+          </p>
+        )}
       </div>
 
       {/* Domain breakdown */}

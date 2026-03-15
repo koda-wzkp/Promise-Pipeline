@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { TeamMember, TeamPromise, CapacityResult } from "@/lib/types/team";
 import { PromiseOrigin } from "@/lib/types/promise";
 import { calculateNetworkHealth } from "@/lib/simulation/cascade";
+import { calculateUtilization } from "@/lib/simulation/capacity";
 
 const STORAGE_KEY = "promise-pipeline-team";
 
@@ -96,12 +97,24 @@ export default function CapacityPage() {
       ? `Warning: This puts ${members.find((m) => m.id === assignee)?.name || assignee} at ${Math.round(newLoadPercent)}% load. ${atRiskPromises.length} existing promise${atRiskPromises.length !== 1 ? "s" : ""} become at risk.`
       : `This commitment may impact ${atRiskPromises.length} existing promise${atRiskPromises.length !== 1 ? "s" : ""}.`;
 
+    // Utilization impact
+    const utilBefore = calculateUtilization(promises, members);
+    const utilAfter = calculateUtilization([...promises, hypothetical], members);
+    const memberUtilBefore = utilBefore.byMember[assignee]?.utilization || 0;
+    const memberUtilAfter = utilAfter.byMember[assignee]?.utilization || 0;
+
     setResult({
       canAbsorb,
       newMemberLoad: newLoadPercent,
       atRiskPromises,
       healthImpact,
       recommendation,
+      utilizationImpact: {
+        before: utilBefore.teamUtilization,
+        after: utilAfter.teamUtilization,
+        memberBefore: memberUtilBefore,
+        memberAfter: memberUtilAfter,
+      },
     });
   };
 
@@ -203,6 +216,26 @@ export default function CapacityPage() {
                     <p className="text-xs text-gray-500">Health impact</p>
                   </div>
                 </div>
+
+                {result.utilizationImpact && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium mb-2">Utilization Impact</p>
+                    <div className="grid grid-cols-2 gap-3 text-center text-xs">
+                      <div>
+                        <p className="text-sm font-bold text-gray-700">
+                          {Math.round(result.utilizationImpact.before * 100)}% → {Math.round(result.utilizationImpact.after * 100)}%
+                        </p>
+                        <p className="text-gray-500">Team utilization</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-700">
+                          {Math.round(result.utilizationImpact.memberBefore * 100)}% → {Math.round(result.utilizationImpact.memberAfter * 100)}%
+                        </p>
+                        <p className="text-gray-500">Assignee utilization</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

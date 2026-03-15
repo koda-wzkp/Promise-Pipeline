@@ -3,6 +3,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { Promise as PromiseType, Agent, Threat } from "@/lib/types/promise";
 import { buildPromiseGraph, layoutGraph, countDependents } from "@/lib/simulation/graph";
+import { identifyHighLeverageNodes } from "@/lib/simulation/scoring";
 import { GraphNodeComponent } from "./GraphNode";
 import { GraphEdgeComponent } from "./GraphEdge";
 
@@ -37,6 +38,13 @@ export function PromiseGraphView({
   }, [promises, agents, threats, width, height]);
 
   const depCounts = useMemo(() => countDependents(promises), [promises]);
+
+  const leverageScores = useMemo(() => {
+    const nodes = identifyHighLeverageNodes(promises);
+    const map = new Map<string, number>();
+    for (const n of nodes) map.set(n.promiseId, n.leverage);
+    return map;
+  }, [promises]);
 
   const nodeMap = useMemo(
     () => new Map(graph.nodes.map((n) => [n.id, n])),
@@ -139,8 +147,8 @@ export function PromiseGraphView({
       {/* Nodes */}
       {filteredNodes.map((node) => {
         const baseSize = 12;
-        const depCount = depCounts.get(node.id) || 0;
-        const size = node.type === "promise" ? baseSize + depCount * 3 : baseSize;
+        const leverage = leverageScores.get(node.id) || 0;
+        const size = node.type === "promise" ? baseSize + leverage * 15 : baseSize;
 
         return (
           <GraphNodeComponent
@@ -177,7 +185,7 @@ export function PromiseGraphView({
         </text>
         <circle cx={5} cy={42} r={5} fill="#1a5f4a" opacity={0.85} />
         <text className="text-[9px] fill-gray-500" x={14} y={45}>
-          = Node size shows dependents
+          = Node size shows leverage
         </text>
       </g>
     </svg>

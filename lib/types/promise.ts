@@ -54,6 +54,13 @@ export interface VerificationSource {
     value: number;
   };
   frequency?: string;
+
+  // Cryptographic verification commitment
+  commitment?: {
+    hash: string;           // SHA-256 hash of the source document or API response
+    timestamp: string;      // ISO timestamp of when verification was performed
+    sourceDigest: string;   // Human-readable description: "Oregon DEQ Filing Q3 2025"
+  };
 }
 
 // ─── PROMISE (v2.1) ───
