@@ -211,6 +211,53 @@ export function calculateNetworkEntropy(promises: Promise[]): {
 }
 
 /**
+ * A point in the entropy time series.
+ */
+export interface EntropyTimePoint {
+  date: string;           // ISO date
+  label?: string;         // optional event label: "U.S. Withdrawal"
+  entropy: number;        // 0-100
+  healthScore: number;    // 0-100
+  verificationCoverage: number; // % with functioning verification
+  promiseCount: number;
+}
+
+/**
+ * Calculate entropy at each historical snapshot.
+ *
+ * Verification coverage accounts for verification dependencies:
+ * a promise with method !== "none" but whose dependsOnPromise is
+ * violated counts as effectively unverified.
+ */
+export function calculateEntropyTimeSeries(
+  snapshots: { date: string; label?: string; promises: Promise[] }[],
+): EntropyTimePoint[] {
+  return snapshots.map(snapshot => {
+    const entropy = calculateNetworkEntropy(snapshot.promises);
+    const health = healthScore(snapshot.promises);
+
+    const effectivelyVerified = snapshot.promises.filter(p => {
+      if (p.verification.method === "none") return false;
+      if (!p.verification.dependsOnPromise) return true;
+      const verifier = snapshot.promises.find(
+        v => v.id === p.verification.dependsOnPromise
+      );
+      if (!verifier) return true;
+      return verifier.status !== "violated" && verifier.status !== "unverifiable";
+    }).length;
+
+    return {
+      date: snapshot.date,
+      label: snapshot.label,
+      entropy: entropy.overall,
+      healthScore: health,
+      verificationCoverage: (effectivelyVerified / snapshot.promises.length) * 100,
+      promiseCount: snapshot.promises.length,
+    };
+  });
+}
+
+/**
  * Identify high-leverage promises using both dependent count
  * and betweenness centrality.
  *

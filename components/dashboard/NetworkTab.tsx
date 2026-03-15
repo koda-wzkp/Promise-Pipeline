@@ -1,7 +1,7 @@
 "use client";
 
 import { Promise as PromiseType, Agent, PromiseStatus, Threat } from "@/lib/types/promise";
-import { CascadeResult } from "@/lib/types/simulation";
+import { CascadeResult, CertaintyImpact } from "@/lib/types/simulation";
 import { PromiseGraphView } from "@/components/network/PromiseGraph";
 import { WhatIfPanel } from "@/components/simulation/WhatIfPanel";
 import { CascadeResults } from "@/components/simulation/CascadeResults";
@@ -31,6 +31,10 @@ export function NetworkTab({
 }: NetworkTabProps) {
   const selectedPromise = promises.find((p) => p.id === selectedPromiseId);
 
+  const certaintyAffectedIds = new Set(
+    (cascadeResult?.certaintyImpacts || []).map((ci: CertaintyImpact) => ci.promiseId)
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Graph */}
@@ -54,6 +58,7 @@ export function NetworkTab({
             height={500}
             selectedPromiseId={selectedPromiseId}
             affectedIds={affectedIds}
+            certaintyAffectedIds={certaintyAffectedIds}
             onNodeClick={onNodeClick}
             showAgentNodes={true}
           />

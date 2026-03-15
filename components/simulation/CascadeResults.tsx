@@ -99,6 +99,39 @@ export function CascadeResults({
         </div>
       )}
 
+      {/* Certainty impacts */}
+      {result.certaintyImpacts && result.certaintyImpacts.length > 0 && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <p className="text-sm font-medium text-purple-800 mb-2">
+            Certainty Effects ({result.certaintyImpacts.length} promise{result.certaintyImpacts.length !== 1 ? "s" : ""})
+          </p>
+          <div className="space-y-1.5">
+            {result.certaintyImpacts.map((ci) => {
+              const promise = promiseMap.get(ci.promiseId);
+              return (
+                <div key={ci.promiseId} className="text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-gray-500">{ci.promiseId}</span>
+                    <span className="text-purple-700">
+                      certainty {Math.round(ci.previousCertainty * 100)}% → {Math.round(ci.newCertainty * 100)}%
+                    </span>
+                  </div>
+                  <p className="text-gray-500 ml-4 truncate">{ci.reason}</p>
+                </div>
+              );
+            })}
+          </div>
+          {result.originalNetworkEntropy !== undefined && (
+            <div className="mt-2 pt-2 border-t border-purple-200 text-xs text-purple-800">
+              Network Certainty: {Math.round(100 - result.originalNetworkEntropy)} → {Math.round(100 - result.newNetworkEntropy)}
+              <span className="ml-1">
+                ({Math.round(result.originalNetworkEntropy - result.newNetworkEntropy) > 0 ? "+" : ""}{Math.round((100 - result.newNetworkEntropy) - (100 - result.originalNetworkEntropy))})
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Affected promises */}
       {result.affectedPromises.length > 0 && (
         <div>

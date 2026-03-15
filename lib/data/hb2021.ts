@@ -46,6 +46,7 @@ export const promises: Promise[] = [
         timestamp: "2026-03-15T00:00:00Z",
         sourceDigest: "Oregon DEQ Annual Emissions Audit, PGE 2024",
       },
+      dependsOnPromise: "P006",
     },
     // P001 depends on: PGE having an approved plan (P002), DEQ verification (P006)
     depends_on: ["P002", "P006"],
@@ -114,6 +115,7 @@ export const promises: Promise[] = [
         timestamp: "2026-03-15T00:00:00Z",
         sourceDigest: "Oregon DEQ Annual Emissions Audit, PacifiCorp 2024",
       },
+      dependsOnPromise: "P006",
     },
     // P004 depends on: PacifiCorp plan (P003), DEQ verification (P006)
     depends_on: ["P003", "P006"],

@@ -13,6 +13,14 @@ export interface AffectedPromise {
   reason: string;
 }
 
+export interface CertaintyImpact {
+  promiseId: string;
+  previousCertainty: number;    // 0-1
+  newCertainty: number;         // 0-1
+  reason: string;               // human-readable explanation
+  verificationChainDepth: number; // how many links in the verification chain
+}
+
 export interface CascadeResult {
   query: WhatIfQuery;
   originalNetworkHealth: number;
@@ -22,6 +30,11 @@ export interface CascadeResult {
   cascadeDepth: number;
   domainsAffected: string[];
   summary: string;
+
+  // Certainty cascade effects
+  certaintyImpacts: CertaintyImpact[];
+  originalNetworkEntropy: number;   // 0-100 before simulation
+  newNetworkEntropy: number;        // 0-100 after simulation
 }
 
 export interface NetworkHealthScore {
@@ -57,7 +70,7 @@ export interface GraphNode {
 export interface GraphEdge {
   source: string;
   target: string;
-  type: "depends_on" | "promiser" | "promisee" | "threat";
+  type: "depends_on" | "promiser" | "promisee" | "threat" | "verification_dependency";
   weight?: number;
 }
 

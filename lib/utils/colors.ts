@@ -47,11 +47,21 @@ export const skyColors = {
   darkAccent: "#2d2d44",
 } as const;
 
+export const jcpoaDomainColors: Record<string, string> = {
+  Enrichment: "#dc2626",
+  Facilities: "#b45309",
+  Verification: "#7c3aed",
+  Sanctions: "#2563eb",
+  Cooperation: "#059669",
+  Governance: "#0891b2",
+} as const;
+
 export const dashboardThemes = {
   hb2021: { bg: "#faf9f6", accent: "#1a5f4a" },
   ai: { bg: "#f5f0eb", accent: "#1a1a2e" },
   infrastructure: { bg: "#0f1419", accent: "#00d4aa" },
   supplyChain: { bg: "#faf9f6", accent: "#2d5016" },
+  jcpoa: { bg: "#f5f0eb", accent: "#991b1b" },
 } as const;
 
 export function getStatusColor(status: string): string {

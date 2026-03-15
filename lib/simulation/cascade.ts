@@ -3,8 +3,10 @@ import {
   WhatIfQuery,
   CascadeResult,
   AffectedPromise,
+  CertaintyImpact,
   NetworkHealthScore,
 } from "../types/simulation";
+import { calculateNetworkEntropy } from "./scoring";
 
 const STATUS_WEIGHTS: Record<PromiseStatus, number> = {
   verified: 100,
@@ -27,6 +29,71 @@ function degradeStatus(current: PromiseStatus, levels: number = 1): PromiseStatu
   if (idx === -1) return current;
   const newIdx = Math.min(idx + levels, DEGRADATION_ORDER.length - 1);
   return DEGRADATION_ORDER[newIdx];
+}
+
+const CERTAINTY_WEIGHTS: Record<PromiseStatus, number> = {
+  verified: 1.0,
+  violated: 0.9,
+  degraded: 0.6,
+  declared: 0.3,
+  unverifiable: 0.0,
+};
+
+/**
+ * Propagate certainty changes through verification dependency chains.
+ *
+ * When a promise that serves as a verification dependency changes status,
+ * find all promises whose verification depends on it and compute certainty impact.
+ * Certainty is capped at the verifier's certainty level.
+ */
+export function propagateCertaintyChange(
+  promises: Promise[],
+  changedPromiseId: string,
+  newStatus: PromiseStatus,
+): CertaintyImpact[] {
+  const impacts: CertaintyImpact[] = [];
+  const changedPromise = promises.find(p => p.id === changedPromiseId);
+  if (!changedPromise) return impacts;
+
+  // Find all promises whose verification depends on the changed promise
+  const verificationDependents = promises.filter(
+    p => p.verification?.dependsOnPromise === changedPromiseId
+  );
+
+  if (verificationDependents.length === 0) return impacts;
+
+  const verifierCertainty = CERTAINTY_WEIGHTS[newStatus];
+
+  for (const dependent of verificationDependents) {
+    const previousCertainty = CERTAINTY_WEIGHTS[dependent.status];
+    const newCertainty = Math.min(previousCertainty, verifierCertainty);
+
+    if (newCertainty < previousCertainty) {
+      impacts.push({
+        promiseId: dependent.id,
+        previousCertainty,
+        newCertainty,
+        reason: `Verification mechanism compromised: ${changedPromise.body.slice(0, 80)} (${changedPromiseId}) ${newStatus}`,
+        verificationChainDepth: 1,
+      });
+
+      // Recursive: if this dependent is itself a verification dependency
+      // for other promises, propagate further
+      const downstream = propagateCertaintyChange(
+        promises,
+        dependent.id,
+        dependent.status,
+      );
+
+      for (const d of downstream) {
+        d.verificationChainDepth += 1;
+        d.newCertainty = Math.min(d.newCertainty, newCertainty);
+        impacts.push(d);
+      }
+    }
+  }
+
+  return impacts;
 }
 
 /**
@@ -57,6 +124,7 @@ export function simulateCascade(
   const affected: AffectedPromise[] = [];
   const targetPromise = promiseMap.get(query.promiseId);
   if (!targetPromise) {
+    const currentEntropy = calculateNetworkEntropy(promises).overall;
     return {
       query,
       originalNetworkHealth: originalHealth,
@@ -66,6 +134,9 @@ export function simulateCascade(
       cascadeDepth: 0,
       domainsAffected: [],
       summary: "Promise not found.",
+      certaintyImpacts: [],
+      originalNetworkEntropy: currentEntropy,
+      newNetworkEntropy: currentEntropy,
     };
   }
 
@@ -176,6 +247,17 @@ export function simulateCascade(
   const newPromises = Array.from(promiseMap.values());
   const newHealth = calculateNetworkHealth(newPromises).overall;
 
+  // Certainty cascade via verification dependency edges
+  const certaintyImpacts = propagateCertaintyChange(
+    promises,
+    query.promiseId,
+    query.newStatus,
+  );
+
+  // Entropy before and after
+  const originalEntropy = calculateNetworkEntropy(promises).overall;
+  const newEntropy = calculateNetworkEntropy(newPromises).overall;
+
   const domainsAffected = Array.from(
     new Set(
       affected
@@ -194,6 +276,9 @@ export function simulateCascade(
       cascadeDepth: maxDepth,
       domainsAffected,
       summary: "",
+      certaintyImpacts,
+      originalNetworkEntropy: originalEntropy,
+      newNetworkEntropy: newEntropy,
     },
     promises
   );
@@ -207,6 +292,9 @@ export function simulateCascade(
     cascadeDepth: maxDepth,
     domainsAffected,
     summary,
+    certaintyImpacts,
+    originalNetworkEntropy: originalEntropy,
+    newNetworkEntropy: newEntropy,
   };
 }
 
@@ -385,8 +473,13 @@ export function generateCascadeNarrative(
   if (worstAffected) {
     const wp = promiseMap.get(worstAffected.promiseId);
     if (wp) {
-      narrative += `Most critical impact: "${wp.body}" degrades to violated.`;
+      narrative += `Most critical impact: "${wp.body}" degrades to violated. `;
     }
+  }
+
+  // Certainty cascade effects
+  if (result.certaintyImpacts && result.certaintyImpacts.length > 0) {
+    narrative += `Additionally, ${result.certaintyImpacts.length} promise${result.certaintyImpacts.length !== 1 ? "s lose" : " loses"} verification certainty through verification dependency chains.`;
   }
 
   return narrative;

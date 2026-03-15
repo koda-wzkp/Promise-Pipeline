@@ -58,6 +58,17 @@ export function buildPromiseGraph(
     });
   }
 
+  // Verification dependency edges
+  for (const p of promises) {
+    if (p.verification?.dependsOnPromise) {
+      edges.push({
+        source: p.verification.dependsOnPromise,
+        target: p.id,
+        type: "verification_dependency",
+      });
+    }
+  }
+
   // Threat edges
   for (const t of threats) {
     for (const affectedId of t.affectedPromiseIds) {

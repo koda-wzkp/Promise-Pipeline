@@ -15,6 +15,7 @@ interface PromiseGraphProps {
   height?: number;
   selectedPromiseId?: string | null;
   affectedIds?: Set<string>;
+  certaintyAffectedIds?: Set<string>;
   onNodeClick?: (promiseId: string) => void;
   showAgentNodes?: boolean;
 }
@@ -27,6 +28,7 @@ export function PromiseGraphView({
   height = 600,
   selectedPromiseId,
   affectedIds = new Set(),
+  certaintyAffectedIds = new Set(),
   onNodeClick,
   showAgentNodes = true,
 }: PromiseGraphProps) {
@@ -68,7 +70,7 @@ export function PromiseGraphView({
   const filteredEdges = showAgentNodes
     ? graph.edges
     : graph.edges.filter(
-        (e) => e.type === "depends_on" || e.type === "threat"
+        (e) => e.type === "depends_on" || e.type === "threat" || e.type === "verification_dependency"
       );
 
   return (
@@ -110,6 +112,17 @@ export function PromiseGraphView({
           orient="auto"
         >
           <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b" />
+        </marker>
+        <marker
+          id="arrowhead-verification"
+          viewBox="0 0 10 7"
+          refX="9"
+          refY="3.5"
+          markerWidth="8"
+          markerHeight="6"
+          orient="auto"
+        >
+          <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed" />
         </marker>
         <marker
           id="arrowhead-agent"
@@ -157,13 +170,14 @@ export function PromiseGraphView({
             size={size}
             isSelected={selectedPromiseId === node.id}
             isAffected={affectedIds.has(node.id)}
+            isCertaintyAffected={certaintyAffectedIds.has(node.id)}
             onClick={handleNodeClick}
           />
         );
       })}
 
       {/* Legend */}
-      <g transform={`translate(10, ${height - 80})`}>
+      <g transform={`translate(10, ${height - 95})`}>
         <text className="text-[10px] fill-gray-500 font-medium" y={0}>
           Legend
         </text>
@@ -176,15 +190,27 @@ export function PromiseGraphView({
           y1={26}
           x2={20}
           y2={26}
+          stroke="#7c3aed"
+          strokeWidth={1.5}
+          strokeDasharray="6,3"
+        />
+        <text className="text-[9px] fill-gray-500" x={24} y={29}>
+          Verification Dep.
+        </text>
+        <line
+          x1={0}
+          y1={40}
+          x2={20}
+          y2={40}
           stroke="#b91c1c"
           strokeWidth={1.5}
           strokeDasharray="4,3"
         />
-        <text className="text-[9px] fill-gray-500" x={24} y={29}>
+        <text className="text-[9px] fill-gray-500" x={24} y={43}>
           Threat
         </text>
-        <circle cx={5} cy={42} r={5} fill="#1a5f4a" opacity={0.85} />
-        <text className="text-[9px] fill-gray-500" x={14} y={45}>
+        <circle cx={5} cy={56} r={5} fill="#1a5f4a" opacity={0.85} />
+        <text className="text-[9px] fill-gray-500" x={14} y={59}>
           = Node size shows leverage
         </text>
       </g>

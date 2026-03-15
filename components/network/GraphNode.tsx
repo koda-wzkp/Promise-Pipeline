@@ -8,6 +8,7 @@ interface GraphNodeProps {
   size: number;
   isSelected: boolean;
   isAffected: boolean;
+  isCertaintyAffected?: boolean;
   onClick: (id: string) => void;
 }
 
@@ -16,6 +17,7 @@ export function GraphNodeComponent({
   size,
   isSelected,
   isAffected,
+  isCertaintyAffected = false,
   onClick,
 }: GraphNodeProps) {
   const x = node.x || 0;
@@ -70,9 +72,9 @@ export function GraphNodeComponent({
         cy={y}
         r={radius + 4}
         fill="transparent"
-        stroke={isSelected ? "#2563eb" : "transparent"}
+        stroke={isSelected ? "#2563eb" : isCertaintyAffected ? "#7c3aed" : "transparent"}
         strokeWidth={2}
-        strokeDasharray={isSelected ? "none" : "none"}
+        strokeDasharray={isCertaintyAffected && !isSelected ? "4,3" : "none"}
       />
       <circle
         cx={x}

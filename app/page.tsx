@@ -154,6 +154,12 @@ function UseCases() {
       desc: "Track legislative promises as dependency networks. See cascade effects when commitments fail. Oregon HB 2021 demo shows 20 promises across 11 agents.",
     },
     {
+      id: "jcpoa",
+      label: "JCPOA",
+      title: "Arms Control — Iran Nuclear Deal",
+      desc: "22 promises, 11 agents, 8 domains. The Iran nuclear deal analyzed as a promise network — revealing how the most sophisticated verification regime in arms control history collapsed in 3.5 years.",
+    },
+    {
       id: "ai",
       label: "AI",
       title: "AI Safety Auditing",
@@ -215,6 +221,14 @@ function UseCases() {
               className="inline-block px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800"
             >
               See HB 2021 Demo
+            </Link>
+          )}
+          {active.id === "jcpoa" && (
+            <Link
+              href="/demo/jcpoa"
+              className="inline-block px-4 py-2 bg-red-700 text-white rounded-lg text-sm font-medium hover:bg-red-800"
+            >
+              See JCPOA Analysis
             </Link>
           )}
           {active.id === "teams" && (

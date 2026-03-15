@@ -61,6 +61,13 @@ export interface VerificationSource {
     timestamp: string;      // ISO timestamp of when verification was performed
     sourceDigest: string;   // Human-readable description: "Oregon DEQ Filing Q3 2025"
   };
+
+  // Verification dependency chain
+  // The ID of a promise that must be kept for this verification to function.
+  // If that promise degrades or is violated, this verification mechanism
+  // is compromised — and the promise it verifies becomes less certain
+  // even if its compliance status hasn't changed.
+  dependsOnPromise?: string;
 }
 
 // ─── PROMISE (v2.1) ───
